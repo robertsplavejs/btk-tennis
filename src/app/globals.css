@@ -1,8 +1,29 @@
 @import "tailwindcss";
 
 :root {
+
   --background: #ffffff;
+
   --foreground: #171717;
+
+  /* BTK Brand */
+
+  --btk-primary: #0F4C81;
+
+  --btk-primary-hover: #0C3E68;
+
+  --btk-accent: #F4B400;
+
+  --btk-success: #16A34A;
+
+  --btk-warning: #F59E0B;
+
+  --btk-danger: #DC2626;
+
+  --btk-surface: #F8FAFC;
+
+  --btk-border: #E5E7EB;
+
 }
 
 @theme inline {

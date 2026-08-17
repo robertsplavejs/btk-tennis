@@ -1,14 +1,26 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import {
+  useMemo,
+  useState,
+  useTransition,
+  type FormEvent,
+} from "react";
+import { useRouter } from "next/navigation";
 
 import { Card } from "@/components/ui/Card";
+import {
+  saveMatchResult,
+  type SaveMatchSetInput,
+} from "@/app/matches/[matchId]/result/actions";
 import { validateMatchSet } from "@/lib/validateMatchSet";
 import type { MatchPlayer, MatchSet } from "@/types/match";
 
 type MatchResultFormProps = {
+  matchId: string;
   playerOne: MatchPlayer;
   playerTwo: MatchPlayer;
+  initialSets?: MatchSet[];
 };
 
 type SetInput = {
@@ -49,7 +61,9 @@ function getSetWinner(set: SetInput) {
     return null;
   }
 
-  return playerOneGames > playerTwoGames ? "playerOne" : "playerTwo";
+  return playerOneGames > playerTwoGames
+    ? "playerOne"
+    : "playerTwo";
 }
 
 function toMatchSet(set: SetInput): MatchSet | null {
@@ -67,18 +81,33 @@ function toMatchSet(set: SetInput): MatchSet | null {
 }
 
 export function MatchResultForm({
+  matchId,
   playerOne,
   playerTwo,
+  initialSets = [],
 }: MatchResultFormProps) {
-  const [sets, setSets] = useState<SetInput[]>([
-    { ...emptySet },
-    { ...emptySet },
-  ]);
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  const [sets, setSets] = useState<SetInput[]>(
+    initialSets.length
+      ? initialSets.map((set) => ({
+          playerOneGames: String(set.playerOneGames),
+          playerTwoGames: String(set.playerTwoGames),
+        }))
+      : [{ ...emptySet }, { ...emptySet }]
+  );
 
   const [decidingSetType, setDecidingSetType] =
-    useState<DecidingSetType>("match-tiebreak");
+    useState<DecidingSetType>(
+      initialSets[2]?.setType === "regular"
+        ? "regular"
+        : "match-tiebreak"
+    );
 
   const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] =
+    useState<"error" | "success">("error");
 
   const setWins = useMemo(() => {
     return sets.reduce(
@@ -105,6 +134,11 @@ export function MatchResultForm({
         ? playerTwo
         : null;
 
+  function clearMessage() {
+    setMessage(null);
+    setMessageType("error");
+  }
+
   function updateSet(
     setIndex: number,
     player: "playerOneGames" | "playerTwoGames",
@@ -125,7 +159,7 @@ export function MatchResultForm({
       )
     );
 
-    setMessage(null);
+    clearMessage();
   }
 
   function addDecidingSet() {
@@ -133,17 +167,22 @@ export function MatchResultForm({
       return;
     }
 
-    setSets((currentSets) => [...currentSets, { ...emptySet }]);
-    setMessage(null);
+    setSets((currentSets) => [
+      ...currentSets,
+      { ...emptySet },
+    ]);
+
+    clearMessage();
   }
 
   function removeDecidingSet() {
     setSets((currentSets) => currentSets.slice(0, 2));
-    setMessage(null);
+    clearMessage();
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    clearMessage();
 
     const formattedSets = sets.map(toMatchSet);
 
@@ -174,6 +213,7 @@ export function MatchResultForm({
 
     const firstSetWinner = getSetWinner(sets[0]);
     const secondSetWinner = getSetWinner(sets[1]);
+
     const decidingSetIsRequired =
       firstSetWinner !== null &&
       secondSetWinner !== null &&
@@ -218,16 +258,36 @@ export function MatchResultForm({
       (set): set is MatchSet => set !== null
     );
 
-    console.log({
-      sets: completedSets,
-      decidingSetType:
-        sets.length === 3 ? decidingSetType : undefined,
-      winnerId: winner.id,
-    });
+    const resultSets: SaveMatchSetInput[] =
+      completedSets.map((set, index) => ({
+        playerOneScore: set.playerOneGames,
+        playerTwoScore: set.playerTwoGames,
+        setType:
+          index === 2 ? decidingSetType : "regular",
+      }));
 
-    setMessage(
-      `Rezultāts sagatavots. Uzvarētājs: ${winner.name}.`
-    );
+    startTransition(async () => {
+      const result = await saveMatchResult(
+        matchId,
+        resultSets
+      );
+
+      if (!result.success) {
+        setMessageType("error");
+        setMessage(result.message);
+        return;
+      }
+
+      setMessageType("success");
+      setMessage(result.message);
+
+      if (!result.changed) {
+        return;
+      }
+
+      router.push(`/matches/${matchId}`);
+      router.refresh();
+    });
   }
 
   return (
@@ -265,7 +325,8 @@ export function MatchResultForm({
                     <button
                       type="button"
                       onClick={removeDecidingSet}
-                      className="text-xs font-semibold text-neutral-500 transition hover:text-black"
+                      disabled={isPending}
+                      className="text-xs font-semibold text-neutral-500 transition hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Noņemt
                     </button>
@@ -276,10 +337,12 @@ export function MatchResultForm({
                   <div className="mt-3 grid grid-cols-2 rounded-xl bg-white p-1">
                     <button
                       type="button"
-                      onClick={() =>
-                        setDecidingSetType("regular")
-                      }
-                      className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                      disabled={isPending}
+                      onClick={() => {
+                        setDecidingSetType("regular");
+                        clearMessage();
+                      }}
+                      className={`rounded-lg px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                         decidingSetType === "regular"
                           ? "bg-black text-white"
                           : "text-neutral-500"
@@ -290,10 +353,14 @@ export function MatchResultForm({
 
                     <button
                       type="button"
-                      onClick={() =>
-                        setDecidingSetType("match-tiebreak")
-                      }
-                      className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                      disabled={isPending}
+                      onClick={() => {
+                        setDecidingSetType(
+                          "match-tiebreak"
+                        );
+                        clearMessage();
+                      }}
+                      className={`rounded-lg px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
                         decidingSetType === "match-tiebreak"
                           ? "bg-black text-white"
                           : "text-neutral-500"
@@ -312,6 +379,7 @@ export function MatchResultForm({
                   <input
                     type="text"
                     inputMode="numeric"
+                    disabled={isPending}
                     aria-label={`${playerOne.name}, ${index + 1}. seta rezultāts`}
                     value={set.playerOneGames}
                     onChange={(event) =>
@@ -321,7 +389,7 @@ export function MatchResultForm({
                         event.target.value
                       )
                     }
-                    className="h-12 w-full rounded-xl border border-black/10 bg-white text-center text-lg font-semibold outline-none transition focus:border-black"
+                    className="h-12 w-full rounded-xl border border-black/10 bg-white text-center text-lg font-semibold outline-none transition focus:border-black disabled:cursor-not-allowed disabled:opacity-50"
                   />
 
                   <span className="text-center text-lg font-semibold text-neutral-400">
@@ -331,6 +399,7 @@ export function MatchResultForm({
                   <input
                     type="text"
                     inputMode="numeric"
+                    disabled={isPending}
                     aria-label={`${playerTwo.name}, ${index + 1}. seta rezultāts`}
                     value={set.playerTwoGames}
                     onChange={(event) =>
@@ -340,7 +409,7 @@ export function MatchResultForm({
                         event.target.value
                       )
                     }
-                    className="h-12 w-full rounded-xl border border-black/10 bg-white text-center text-lg font-semibold outline-none transition focus:border-black"
+                    className="h-12 w-full rounded-xl border border-black/10 bg-white text-center text-lg font-semibold outline-none transition focus:border-black disabled:cursor-not-allowed disabled:opacity-50"
                   />
 
                   <p className="truncate text-xs font-medium text-neutral-500">
@@ -357,7 +426,8 @@ export function MatchResultForm({
         <button
           type="button"
           onClick={addDecidingSet}
-          className="flex h-11 w-full items-center justify-center rounded-xl bg-neutral-100 px-5 text-sm font-semibold text-black transition hover:bg-neutral-200"
+          disabled={isPending}
+          className="flex h-11 w-full items-center justify-center rounded-xl bg-neutral-100 px-5 text-sm font-semibold text-black transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Pievienot 3. setu vai mača taibreiku
         </button>
@@ -397,8 +467,12 @@ export function MatchResultForm({
 
       {message && (
         <p
-          className="rounded-2xl bg-neutral-100 px-4 py-3 text-sm leading-5 text-neutral-700"
-          role="status"
+          className={
+            messageType === "success"
+              ? "rounded-2xl bg-green-50 px-4 py-3 text-sm leading-5 text-green-700"
+              : "rounded-2xl bg-red-50 px-4 py-3 text-sm leading-5 text-red-700"
+          }
+          role={messageType === "success" ? "status" : "alert"}
         >
           {message}
         </p>
@@ -406,9 +480,12 @@ export function MatchResultForm({
 
       <button
         type="submit"
-        className="flex h-12 w-full items-center justify-center rounded-xl bg-[var(--btk-primary)] px-5 text-sm font-semibold text-white transition-colors hover:bg-[var(--btk-primary-hover)]"
+        disabled={isPending}
+        className="flex h-12 w-full items-center justify-center rounded-xl bg-[var(--btk-primary)] px-5 text-sm font-semibold text-white transition-colors hover:bg-[var(--btk-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Saglabāt rezultātu
+        {isPending
+          ? "Saglabā rezultātu..."
+          : "Saglabāt rezultātu"}
       </button>
     </form>
   );

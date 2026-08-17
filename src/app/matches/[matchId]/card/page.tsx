@@ -2,8 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { Card } from "@/components/ui/Card";
-import { getDemoMatchById } from "@/data/demo";
 import { MatchCardEditor } from "@/features/match/MatchCardEditor";
+import { createMatchService } from "@/services/createMatchService";
+import type { TournamentMatch } from "@/types/match";
 
 type MatchCardPageProps = {
   params: Promise<{
@@ -15,13 +16,68 @@ export default async function MatchCardPage({
   params,
 }: MatchCardPageProps) {
   const { matchId } = await params;
-  const match = getDemoMatchById(matchId);
+  const matchService = await createMatchService();
+  const storedMatch = await matchService.getMatchById(matchId);
 
-  if (!match) {
+  if (
+    !storedMatch ||
+    !storedMatch.player_one ||
+    !storedMatch.player_two
+  ) {
     notFound();
   }
 
-  if (match.status !== "completed") {
+  const match: TournamentMatch = {
+    id: storedMatch.id,
+    tournamentId: storedMatch.tournament_id,
+    groupId: storedMatch.group_id,
+    playerOne: {
+      id: storedMatch.player_one.id,
+      name: storedMatch.player_one.full_name,
+      avatarUrl: storedMatch.player_one.avatar_url ?? undefined,
+    },
+    playerTwo: {
+      id: storedMatch.player_two.id,
+      name: storedMatch.player_two.full_name,
+      avatarUrl: storedMatch.player_two.avatar_url ?? undefined,
+    },
+    status:
+      storedMatch.status === "completed" ||
+      storedMatch.status === "scheduled" ||
+      storedMatch.status === "cancelled"
+        ? storedMatch.status
+        : "unscheduled",
+    resultType:
+      storedMatch.result_type === "walkover" ||
+      storedMatch.result_type === "retired"
+        ? storedMatch.result_type
+        : "regular",
+    scheduledAt: storedMatch.scheduled_at ?? undefined,
+    court: storedMatch.court ?? undefined,
+    location: storedMatch.location ?? undefined,
+    winnerId: storedMatch.winner_id ?? undefined,
+    notes: storedMatch.notes ?? undefined,
+    createdAt: storedMatch.created_at,
+    updatedAt: storedMatch.updated_at,
+    sets: storedMatch.sets.map((set) => ({
+      playerOneGames: set.player_one_score,
+      playerTwoGames: set.player_two_score,
+      setType:
+        set.set_type === "match_tiebreak"
+          ? "match_tiebreak"
+          : "regular",
+      tiebreak:
+        set.player_one_tiebreak_points !== null &&
+        set.player_two_tiebreak_points !== null
+          ? {
+              playerOnePoints: set.player_one_tiebreak_points,
+              playerTwoPoints: set.player_two_tiebreak_points,
+            }
+          : undefined,
+    })),
+  };
+
+  if (storedMatch.status !== "completed") {
     return (
       <div className="space-y-4 p-4">
         <div>

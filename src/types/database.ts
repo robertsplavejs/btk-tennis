@@ -12,8 +12,161 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.15"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
+      account_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          display_name: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          is_admin: boolean
+          player_id: string | null
+          token: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          display_name: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          is_admin?: boolean
+          player_id?: string | null
+          token?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          display_name?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          is_admin?: boolean
+          player_id?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_invitations_accepted_by_fkey"
+            columns: ["accepted_by"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "account_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "account_invitations_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      activities: {
+        Row: {
+          activity_type: string
+          actor_player_id: string | null
+          color: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          match_id: string | null
+          metadata: Json
+          title: string
+          tournament_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          actor_player_id?: string | null
+          color?: string
+          created_at?: string
+          description: string
+          icon?: string
+          id?: string
+          match_id?: string | null
+          metadata?: Json
+          title: string
+          tournament_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          actor_player_id?: string | null
+          color?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          match_id?: string | null
+          metadata?: Json
+          title?: string
+          tournament_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activities_actor_player_id_fkey"
+            columns: ["actor_player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activities_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clubs: {
         Row: {
           created_at: string
@@ -147,6 +300,51 @@ export type Database = {
           },
         ]
       }
+      match_history: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          match_id: string
+          new_value: Json | null
+          old_value: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          match_id: string
+          new_value?: Json | null
+          old_value?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          match_id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_history_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_accounts"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       match_sets: {
         Row: {
           created_at: string
@@ -198,10 +396,13 @@ export type Database = {
           group_id: string
           id: string
           location: string | null
+          match_number: number | null
           notes: string | null
           player_one_id: string
           player_two_id: string
           result_entered_by: string | null
+          result_type: string
+          round_number: number
           scheduled_at: string | null
           status: string
           tournament_id: string
@@ -214,10 +415,13 @@ export type Database = {
           group_id: string
           id?: string
           location?: string | null
+          match_number?: number | null
           notes?: string | null
           player_one_id: string
           player_two_id: string
           result_entered_by?: string | null
+          result_type?: string
+          round_number?: number
           scheduled_at?: string | null
           status?: string
           tournament_id: string
@@ -230,10 +434,13 @@ export type Database = {
           group_id?: string
           id?: string
           location?: string | null
+          match_number?: number | null
           notes?: string | null
           player_one_id?: string
           player_two_id?: string
           result_entered_by?: string | null
+          result_type?: string
+          round_number?: number
           scheduled_at?: string | null
           status?: string
           tournament_id?: string
@@ -266,8 +473,8 @@ export type Database = {
             foreignKeyName: "matches_result_entered_by_fkey"
             columns: ["result_entered_by"]
             isOneToOne: false
-            referencedRelation: "players"
-            referencedColumns: ["id"]
+            referencedRelation: "user_accounts"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "matches_tournament_id_fkey"
@@ -279,6 +486,80 @@ export type Database = {
           {
             foreignKeyName: "matches_winner_id_fkey"
             columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          body: string
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          match_id: string | null
+          read_at: string | null
+          title: string
+          tournament_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          match_id?: string | null
+          read_at?: string | null
+          title: string
+          tournament_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          match_id?: string | null
+          read_at?: string | null
+          title?: string
+          tournament_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "players"
             referencedColumns: ["id"]
@@ -414,15 +695,105 @@ export type Database = {
           },
         ]
       }
+      user_accounts: {
+        Row: {
+          created_at: string
+          is_admin: boolean
+          player_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          is_admin?: boolean
+          player_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          is_admin?: boolean
+          player_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_accounts_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: true
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      create_account_invitation: {
+        Args: {
+          invitation_display_name?: string
+          invitation_email: string
+          invitation_is_admin?: boolean
+          invitation_player_id?: string
+        }
+        Returns: {
+          expires_at: string
+          token: string
+        }[]
+      }
+      create_activity: {
+        Args: {
+          target_activity_type: string
+          target_color?: string
+          target_description: string
+          target_icon?: string
+          target_match_id?: string
+          target_metadata?: Json
+          target_title: string
+          target_tournament_id?: string
+        }
+        Returns: string
+      }
+      create_notification: {
+        Args: {
+          notification_body: string
+          notification_link?: string
+          notification_title: string
+          notification_type: string
+          target_match_id?: string
+          target_tournament_id?: string
+          target_user_id: string
+        }
+        Returns: string
+      }
+      current_player_id: { Args: never; Returns: string }
+      get_account_invitation_preview: {
+        Args: { invitation_token: string }
+        Returns: {
+          display_name: string
+          expires_at: string
+          is_admin: boolean
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       is_match_participant: {
         Args: { target_match_id: string }
         Returns: boolean
+      }
+      save_match_result: {
+        Args: { submitted_sets: Json; target_match_id: string }
+        Returns: string
+      }
+      save_match_result_internal: {
+        Args: { submitted_sets: Json; target_match_id: string }
+        Returns: string
+      }
+      save_match_walkover: {
+        Args: { selected_winner_id: string; target_match_id: string }
+        Returns: string
       }
     }
     Enums: {
@@ -552,6 +923,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

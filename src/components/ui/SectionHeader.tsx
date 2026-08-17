@@ -1,23 +1,39 @@
+import type { ReactNode } from "react";
+import clsx from "clsx";
+
 type SectionHeaderProps = {
   title: string;
-  action?: string;
+  subtitle?: string;
+  action?: ReactNode;
+  className?: string;
 };
 
 export function SectionHeader({
   title,
+  subtitle,
   action,
+  className,
 }: SectionHeaderProps) {
   return (
-    <div className="mb-3 flex items-center justify-between">
-      <h2 className="text-lg font-semibold tracking-tight">
-        {title}
-      </h2>
-
-      {action && (
-        <button className="text-sm text-neutral-500 hover:text-black transition-colors">
-          {action}
-        </button>
+    <div
+      className={clsx(
+        "flex items-start justify-between gap-4",
+        className
       )}
+    >
+      <div className="min-w-0">
+        <h2 className="text-lg font-semibold text-black">
+          {title}
+        </h2>
+
+        {subtitle && (
+          <p className="mt-1 text-sm leading-5 text-neutral-500">
+            {subtitle}
+          </p>
+        )}
+      </div>
+
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

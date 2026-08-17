@@ -1,0 +1,40 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+import { createClient } from "@/lib/supabase/server";
+
+export async function login(formData: FormData) {
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
+
+  const password = String(formData.get("password") ?? "");
+
+  if (!email || !password) {
+    redirect(
+      `/login?error=${encodeURIComponent(
+        "Ievadi e-pastu un paroli."
+      )}`
+    );
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    redirect(
+      `/login?error=${encodeURIComponent(
+        "Neizdevās ielogoties. Pārbaudi e-pastu un paroli."
+      )}`
+    );
+  }
+
+  revalidatePath("/", "layout");
+  redirect("/");
+}

@@ -9,6 +9,7 @@ export type MatchFormResult = "win" | "loss";
 export type MatchSet = {
   playerOneGames: number;
   playerTwoGames: number;
+  setType?: "regular" | "match_tiebreak";
   tiebreak?: {
     playerOnePoints: number;
     playerTwoPoints: number;
@@ -34,6 +35,8 @@ export type TournamentMatch = {
   playerTwo: MatchPlayer;
 
   status: MatchStatus;
+
+  resultType?: "regular" | "walkover" | "retired";
 
   scheduledAt?: string;
 

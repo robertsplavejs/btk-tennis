@@ -1,8 +1,18 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import {
+  useMemo,
+  useState,
+  useTransition,
+  type FormEvent,
+} from "react";
+import { useRouter } from "next/navigation";
 
 import { Card } from "@/components/ui/Card";
+import {
+  saveMatchSchedule,
+  type SaveMatchScheduleInput,
+} from "@/app/matches/[matchId]/schedule/actions";
 import type { TournamentMatch } from "@/types/match";
 
 type MatchScheduleFormProps = {
@@ -47,6 +57,9 @@ function getInitialTime(scheduledAt?: string) {
 export function MatchScheduleForm({
   match,
 }: MatchScheduleFormProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
   const [date, setDate] = useState(
     getInitialDate(match.scheduledAt)
   );
@@ -58,6 +71,8 @@ export function MatchScheduleForm({
   const [court, setCourt] = useState(match.court ?? "");
   const [location, setLocation] = useState(match.location ?? "");
   const [message, setMessage] = useState<string | null>(null);
+  const [messageType, setMessageType] =
+    useState<"error" | "success">("error");
 
   const submitLabel =
     match.status === "scheduled"
@@ -85,8 +100,14 @@ export function MatchScheduleForm({
     }).format(scheduledDate);
   }, [date, time]);
 
+  function clearMessage() {
+    setMessage(null);
+    setMessageType("error");
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    clearMessage();
 
     if (!date) {
       setMessage("Izvēlies spēles datumu.");
@@ -115,18 +136,27 @@ export function MatchScheduleForm({
       return;
     }
 
-    console.log({
-      matchId: match.id,
+    const input: SaveMatchScheduleInput = {
       scheduledAt: scheduledAt.toISOString(),
       court: court.trim(),
       location: location.trim() || undefined,
-    });
+    };
 
-    setMessage(
-      match.status === "scheduled"
-        ? "Jaunais spēles laiks ir sagatavots saglabāšanai."
-        : "Spēles laiks ir sagatavots saglabāšanai."
-    );
+    startTransition(async () => {
+      const result = await saveMatchSchedule(match.id, input);
+
+      if (!result.success) {
+        setMessageType("error");
+        setMessage(result.message);
+        return;
+      }
+
+      setMessageType("success");
+      setMessage(result.message);
+
+      router.push(`/matches/${match.id}`);
+      router.refresh();
+    });
   }
 
   return (
@@ -145,11 +175,12 @@ export function MatchScheduleForm({
             <input
               type="date"
               value={date}
+              disabled={isPending}
               onChange={(event) => {
                 setDate(event.target.value);
-                setMessage(null);
+                clearMessage();
               }}
-              className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm text-black outline-none transition focus:border-black"
+              className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm text-black outline-none transition focus:border-black disabled:cursor-not-allowed disabled:opacity-50"
             />
           </label>
 
@@ -161,11 +192,12 @@ export function MatchScheduleForm({
             <input
               type="time"
               value={time}
+              disabled={isPending}
               onChange={(event) => {
                 setTime(event.target.value);
-                setMessage(null);
+                clearMessage();
               }}
-              className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm text-black outline-none transition focus:border-black"
+              className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm text-black outline-none transition focus:border-black disabled:cursor-not-allowed disabled:opacity-50"
             />
           </label>
         </div>
@@ -185,12 +217,13 @@ export function MatchScheduleForm({
             <input
               type="text"
               value={court}
+              disabled={isPending}
               onChange={(event) => {
                 setCourt(event.target.value);
-                setMessage(null);
+                clearMessage();
               }}
               placeholder="Piemēram, BTK 3. korts"
-              className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black"
+              className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black disabled:cursor-not-allowed disabled:opacity-50"
             />
           </label>
 
@@ -202,12 +235,13 @@ export function MatchScheduleForm({
             <input
               type="text"
               value={location}
+              disabled={isPending}
               onChange={(event) => {
                 setLocation(event.target.value);
-                setMessage(null);
+                clearMessage();
               }}
               placeholder="Piemēram, Bīriņa tenisa klubs"
-              className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black"
+              className="mt-2 h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm text-black outline-none transition placeholder:text-neutral-400 focus:border-black disabled:cursor-not-allowed disabled:opacity-50"
             />
           </label>
         </div>
@@ -239,8 +273,12 @@ export function MatchScheduleForm({
 
       {message && (
         <p
-          className="rounded-2xl bg-neutral-100 px-4 py-3 text-sm leading-5 text-neutral-700"
-          role="status"
+          className={
+            messageType === "success"
+              ? "rounded-2xl bg-green-50 px-4 py-3 text-sm leading-5 text-green-700"
+              : "rounded-2xl bg-red-50 px-4 py-3 text-sm leading-5 text-red-700"
+          }
+          role={messageType === "success" ? "status" : "alert"}
         >
           {message}
         </p>
@@ -248,9 +286,10 @@ export function MatchScheduleForm({
 
       <button
         type="submit"
-        className="flex h-12 w-full items-center justify-center rounded-xl bg-[var(--btk-primary)] px-5 text-sm font-semibold text-white transition-colors hover:bg-[var(--btk-primary-hover)]"
+        disabled={isPending}
+        className="flex h-12 w-full items-center justify-center rounded-xl bg-[var(--btk-primary)] px-5 text-sm font-semibold text-white transition-colors hover:bg-[var(--btk-primary-hover)] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {submitLabel}
+        {isPending ? "Saglabā..." : submitLabel}
       </button>
     </form>
   );

@@ -15,7 +15,7 @@ export function TournamentHeader({ tournament, group, position, positionChange, 
   return (
     <Card className="overflow-hidden border-0" style={{ boxShadow: "0 14px 34px rgba(15,23,42,.14)" }}>
       <div style={{ position: "relative", minHeight: 196, overflow: "hidden", color: "#fff", background: "#07111d" }}>
-        <img src="/demo/matches-court.png" alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: .55 }} />
+        <img src="/demo/matches-court.webp" alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: .55 }} />
         <div aria-hidden="true" style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(4,12,20,.94), rgba(4,12,20,.48)), linear-gradient(0deg, rgba(4,12,20,.72), transparent 60%)" }} />
         <div style={{ position: "relative", zIndex: 1, padding: "17px 20px 19px" }}>
           {group && <span style={{ display: "inline-flex", padding: "6px 10px", border: "1px solid rgba(255,255,255,.16)", borderRadius: 8, color: "rgba(255,255,255,.72)", background: "rgba(255,255,255,.08)", fontSize: 9, fontWeight: 900, letterSpacing: ".08em", textTransform: "uppercase" }}>{group}</span>}

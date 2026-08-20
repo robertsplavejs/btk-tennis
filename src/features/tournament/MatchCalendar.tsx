@@ -43,7 +43,7 @@ function FeaturedMatch({ match }: { match: TournamentMatch }) {
 
   return (
     <Link href={`/matches/${match.id}`} className="block transition active:scale-[.995]" style={{ position: "relative", overflow: "hidden", minHeight: 106, border: "1px solid #edf0f2", borderRadius: 18, color: "#111827", background: "#f8f9f9", boxShadow: "0 5px 16px rgba(15,23,42,.055)" }}>
-      <img src="/demo/matches-court.png" alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1)", opacity: .07 }} />
+      <img src="/demo/matches-court.webp" alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", filter: "grayscale(1)", opacity: .07 }} />
       <span style={{ position: "absolute", top: 10, right: 12, zIndex: 2 }}><ForwardIndicator /></span>
 
       <div style={{ position: "relative", zIndex: 1, padding: "12px 14px 11px" }}>

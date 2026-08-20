@@ -104,7 +104,8 @@ export class TournamentViewService {
         try {
           return await this.getTournamentView(
             tournament.id,
-            currentPlayerId
+            currentPlayerId,
+            tournament
           );
         } catch {
           return null;
@@ -121,7 +122,10 @@ export class TournamentViewService {
 
   async getTournamentView(
     tournamentId: string,
-    currentPlayerId: string | null
+    currentPlayerId: string | null,
+    prefetchedTournament?: Awaited<
+      ReturnType<TournamentRepository["getAll"]>
+    >[number]
   ): Promise<TournamentView> {
     const normalizedTournamentId = tournamentId.trim();
 
@@ -129,15 +133,13 @@ export class TournamentViewService {
       throw new Error("Turnīra ID nav norādīts.");
     }
 
-    const tournament =
-      await this.tournamentRepository.getById(
+    const [tournament, group] = await Promise.all([
+      prefetchedTournament ??
+        this.tournamentRepository.getById(normalizedTournamentId),
+      this.participantRepository.getMainGroupByTournamentId(
         normalizedTournamentId
-      );
-
-    const group =
-      await this.participantRepository.getMainGroupByTournamentId(
-        normalizedTournamentId
-      );
+      ),
+    ]);
 
     if (!group) {
       throw new Error(

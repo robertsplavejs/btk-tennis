@@ -62,17 +62,16 @@ export class PlayerProfileViewService {
       throw new Error("Spēlētāja ID nav norādīts.");
     }
 
-    const player =
-      await this.playerRepository.getById(normalizedPlayerId);
+    const [player, tournamentView] = await Promise.all([
+      this.playerRepository.getById(normalizedPlayerId),
+      this.tournamentViewService.getDefaultTournamentView(
+        normalizedPlayerId
+      ),
+    ]);
 
     if (!player) {
       throw new PlayerNotFoundError();
     }
-
-    const tournamentView =
-      await this.tournamentViewService.getDefaultTournamentView(
-        normalizedPlayerId
-      );
 
     const playerMatches =
       tournamentView?.matches.filter(

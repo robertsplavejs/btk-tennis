@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import type { User } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/server";
@@ -13,7 +14,7 @@ export type CurrentIdentity = {
   isAdmin: boolean;
 };
 
-export async function getCurrentIdentity(): Promise<CurrentIdentity | null> {
+export const getCurrentIdentity = cache(async (): Promise<CurrentIdentity | null> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -64,4 +65,4 @@ export async function getCurrentIdentity(): Promise<CurrentIdentity | null> {
     avatarUrl: player?.avatar_url ?? null,
     isAdmin: account.is_admin,
   };
-}
+});

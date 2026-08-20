@@ -228,7 +228,7 @@ export function HomeNextMatchCard({
       aria-label={`Atvērt spēli pret ${opponentName}`}
     >
       <Card className="relative min-h-[184px] overflow-hidden border border-black/5 bg-[#f7f8f8] text-[#111827] shadow-[0_7px_22px_rgba(15,23,42,0.07)] transition active:scale-[0.995]">
-        <img src="/demo/matches-court.png" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.11] grayscale" />
+        <img src="/demo/matches-court.webp" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.11] grayscale" />
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,.98),rgba(255,255,255,.76)),linear-gradient(180deg,rgba(255,255,255,.2),rgba(247,248,248,.82))]" aria-hidden="true" />
 
         <div className="relative z-10 px-5 py-4">

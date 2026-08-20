@@ -4,6 +4,7 @@ import {
   type SVGProps,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import clsx from "clsx";
@@ -141,55 +142,64 @@ export function BottomNavigation({
   unreadNotifications = 0,
 }: BottomNavigationProps) {
   const pathname = usePathname();
+  const lastUnreadLoadAt = useRef(0);
+  const unreadRequest = useRef<Promise<void> | null>(null);
 
   const [unreadCount, setUnreadCount] = useState(
     unreadNotifications
   );
 
-  const loadUnreadCount = useCallback(async () => {
-    if (!isAuthenticated) {
+  useEffect(() => {
+    lastUnreadLoadAt.current = Date.now();
+  }, []);
+
+  const loadUnreadCount = useCallback(async (force = false) => {
+    const now = Date.now();
+
+    if (
+      !isAuthenticated ||
+      unreadRequest.current ||
+      (!force && now - lastUnreadLoadAt.current < 60_000)
+    ) {
       return;
     }
 
-    try {
-      const response = await fetch(
-        "/api/notifications/unread-count",
-        {
-          method: "GET",
-          cache: "no-store",
-          credentials: "same-origin",
+    unreadRequest.current = (async () => {
+      try {
+        const response = await fetch(
+          "/api/notifications/unread-count",
+          {
+            method: "GET",
+            cache: "no-store",
+            credentials: "same-origin",
+          }
+        );
+
+        if (!response.ok) {
+          return;
         }
-      );
 
-      if (!response.ok) {
-        return;
+        const data =
+          (await response.json()) as UnreadCountResponse;
+
+        setUnreadCount(
+          typeof data.unreadCount === "number"
+            ? data.unreadCount
+            : 0
+        );
+        lastUnreadLoadAt.current = Date.now();
+      } catch (error) {
+        console.error(
+          "Neizdevās atjaunot paziņojumu skaitu:",
+          error
+        );
+      } finally {
+        unreadRequest.current = null;
       }
+    })();
 
-      const data =
-        (await response.json()) as UnreadCountResponse;
-
-      setUnreadCount(
-        typeof data.unreadCount === "number"
-          ? data.unreadCount
-          : 0
-      );
-    } catch (error) {
-      console.error(
-        "Neizdevās atjaunot paziņojumu skaitu:",
-        error
-      );
-    }
+    await unreadRequest.current;
   }, [isAuthenticated]);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadUnreadCount();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [loadUnreadCount, pathname]);
 
   useEffect(() => {
     function handleWindowFocus() {

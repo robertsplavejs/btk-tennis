@@ -144,7 +144,7 @@ function VisitorHomeScreen() {
     <div className="grid gap-[18px] px-4 pb-7 pt-4">
       <section className="relative overflow-hidden rounded-[28px] bg-[#07131f] px-6 py-8 text-white shadow-[0_14px_34px_rgba(7,19,31,0.16)]">
         <Image
-          src="/demo/home-hero-dark.png"
+          src="/demo/home-hero-dark.webp"
           alt=""
           fill
           priority

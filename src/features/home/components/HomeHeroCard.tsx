@@ -34,7 +34,7 @@ const HOME_HERO_THEMES: Record<
   }
 > = {
   dark: {
-    backgroundImage: "/demo/home-hero-dark.png",
+    backgroundImage: "/demo/home-hero-dark.webp",
     backgroundColor: "#050b10",
     accentColor: "#c7ff00",
   },

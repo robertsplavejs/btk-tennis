@@ -216,7 +216,7 @@ function NextMatchCard({ data }: { data: MatchesPageData }) {
         style={{ position: "relative", isolation: "isolate", minHeight: 270, overflow: "hidden", borderRadius: 24, background: "#020617", color: "#fff", boxShadow: "0 14px 32px rgba(15,23,42,.19)" }}
       >
         <img
-          src="/demo/matches-court.png"
+          src="/demo/matches-court.webp"
           alt=""
           className="h-full w-full object-cover opacity-75"
           style={{ position: "absolute", inset: 0, zIndex: 0, width: "100%", height: "100%", objectFit: "cover", opacity: .78 }}

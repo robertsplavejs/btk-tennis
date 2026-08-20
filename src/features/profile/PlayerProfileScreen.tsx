@@ -93,7 +93,7 @@ export function PlayerProfileScreen({
     <main style={{ width: "100%", minHeight: "100%", padding: "16px 16px 28px", overflowX: "hidden", color: "#0f172a", background: "#fff" }}>
       <section style={{ overflow: "hidden", border: "1px solid #e7eaed", borderRadius: 28, background: "#fff", boxShadow: "0 10px 28px rgba(15,23,42,.09)" }}>
         <div style={{ position: "relative", display: "grid", justifyItems: "center", overflow: "hidden", padding: "24px 18px 22px", background: "#050b10" }}>
-          <img src="/demo/home-hero-dark.png" alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", opacity: .9 }} />
+          <img src="/demo/home-hero-dark.webp" alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", opacity: .9 }} />
           <span aria-hidden="true" style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(3,8,12,.7) 0%, rgba(3,8,12,.3) 50%, rgba(3,8,12,.16) 100%)" }} />
           {profile.player.avatarUrl ? (
             <img src={profile.player.avatarUrl} alt={profile.player.fullName} style={{ position: "relative", zIndex: 2, display: "block", width: 98, height: 98, border: "3px solid rgba(190,242,100,.88)", borderRadius: "50%", objectFit: "cover", boxShadow: "0 7px 22px rgba(0,0,0,.28)" }} />

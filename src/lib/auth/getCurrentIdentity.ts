@@ -6,7 +6,7 @@ import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 
 export type CurrentIdentity = {
-  authUser: User;
+  authUser: Pick<User, "email" | "user_metadata">;
   userId: string;
   playerId: string | null;
   fullName: string;
@@ -16,12 +16,13 @@ export type CurrentIdentity = {
 
 export const getCurrentIdentity = cache(async (): Promise<CurrentIdentity | null> => {
   const supabase = await createClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const { data: claimsData, error: claimsError } =
+    await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
+  const userId =
+    typeof claims?.sub === "string" ? claims.sub : null;
 
-  if (userError || !user) {
+  if (claimsError || !claims || !userId) {
     return null;
   }
 
@@ -36,7 +37,7 @@ export const getCurrentIdentity = cache(async (): Promise<CurrentIdentity | null
         avatar_url
       )
     `)
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .maybeSingle();
 
   if (accountError) {
@@ -56,12 +57,22 @@ export const getCurrentIdentity = cache(async (): Promise<CurrentIdentity | null
     : account.player;
 
   return {
-    authUser: user,
+    authUser: {
+      email:
+        typeof claims.email === "string"
+          ? claims.email
+          : undefined,
+      user_metadata:
+        claims.user_metadata &&
+        typeof claims.user_metadata === "object"
+          ? claims.user_metadata
+          : {},
+    },
     userId: account.user_id,
     playerId: account.player_id,
     fullName:
       player?.full_name ??
-      String(user.user_metadata?.full_name ?? "Administrators"),
+      String(claims.user_metadata?.full_name ?? "Administrators"),
     avatarUrl: player?.avatar_url ?? null,
     isAdmin: account.is_admin,
   };

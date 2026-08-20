@@ -44,6 +44,35 @@ export class TournamentRepository {
     return data;
   }
 
+  async getByPlayerId(playerId: string) {
+    const { data, error } = await this.supabase
+      .from("tournaments")
+      .select(`
+        *,
+        season:seasons(
+          id,
+          name
+        ),
+        groups!inner(
+          group_players!inner(
+            player_id,
+            status
+          )
+        )
+      `)
+      .eq("groups.group_players.player_id", playerId)
+      .eq("groups.group_players.status", "active")
+      .order("created_at", {
+        ascending: false,
+      });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+
   async create(
     tournament: Database["public"]["Tables"]["tournaments"]["Insert"]
   ) {

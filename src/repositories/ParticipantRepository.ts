@@ -29,6 +29,26 @@ export class ParticipantRepository {
     return data;
   }
 
+  async getMainGroupsByTournamentIds(tournamentIds: string[]) {
+    if (tournamentIds.length === 0) {
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from("groups")
+      .select("id, tournament_id, name, slug")
+      .in("tournament_id", tournamentIds)
+      .eq("slug", "main");
+
+    if (error) {
+      throw new Error(
+        `Neizdevās ielādēt turnīru grupas: ${error.message}`
+      );
+    }
+
+    return data;
+  }
+
   async getByGroupId(groupId: string) {
     const { data, error } = await this.supabase
       .from("group_players")
@@ -51,6 +71,40 @@ export class ParticipantRepository {
       .order("joined_at", {
         ascending: true,
       });
+
+    if (error) {
+      throw new Error(
+        `Neizdevās ielādēt dalībniekus: ${error.message}`
+      );
+    }
+
+    return data;
+  }
+
+  async getByGroupIds(groupIds: string[]) {
+    if (groupIds.length === 0) {
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from("group_players")
+      .select(`
+        id,
+        group_id,
+        player_id,
+        seed,
+        status,
+        joined_at,
+        player:players!group_players_player_id_fkey(
+          id,
+          full_name,
+          initials,
+          avatar_url
+        )
+      `)
+      .in("group_id", groupIds)
+      .eq("status", "active")
+      .order("joined_at", { ascending: true });
 
     if (error) {
       throw new Error(

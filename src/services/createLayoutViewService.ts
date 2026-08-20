@@ -1,5 +1,4 @@
 import { getCurrentIdentity } from "@/lib/auth/getCurrentIdentity";
-import { createNotificationService } from "@/services/createNotificationService";
 import {
   LayoutViewService,
   type LayoutCurrentUser,
@@ -20,11 +19,8 @@ export async function createLayoutViewService() {
     };
   }
 
-  const notificationService =
-    await createNotificationService();
-
   return {
-    service: new LayoutViewService(notificationService),
+    service: new LayoutViewService(),
     currentUser,
   };
 }

@@ -132,6 +132,52 @@ export class MatchRepository {
     return data;
   }
 
+  async getByTournamentIds(tournamentIds: string[]) {
+    if (tournamentIds.length === 0) {
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from("matches")
+      .select(`
+        *,
+        player_one:players!matches_player_one_id_fkey(
+          id,
+          full_name,
+          avatar_url
+        ),
+        player_two:players!matches_player_two_id_fkey(
+          id,
+          full_name,
+          avatar_url
+        ),
+        sets:match_sets(
+          id,
+          set_number,
+          set_type,
+          player_one_score,
+          player_two_score,
+          player_one_tiebreak_points,
+          player_two_tiebreak_points
+        )
+      `)
+      .in("tournament_id", tournamentIds)
+      .order("round_number", { ascending: true })
+      .order("match_number", { ascending: true })
+      .order("set_number", {
+        referencedTable: "match_sets",
+        ascending: true,
+      });
+
+    if (error) {
+      throw new Error(
+        `Neizdevās ielādēt spēles: ${error.message}`
+      );
+    }
+
+    return data;
+  }
+
   async deleteSets(matchId: string) {
     const { error } = await this.supabase
       .from("match_sets")

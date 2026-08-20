@@ -55,6 +55,18 @@ export type TournamentHubView = {
   tournaments: TournamentView[];
 };
 
+type PrefetchedTournamentData = {
+  group: Awaited<
+    ReturnType<ParticipantRepository["getMainGroupByTournamentId"]>
+  >;
+  participants: Awaited<
+    ReturnType<ParticipantRepository["getByGroupId"]>
+  >;
+  matches: Awaited<
+    ReturnType<MatchRepository["getByTournamentId"]>
+  >;
+};
+
 export class TournamentViewService {
   constructor(
     private readonly tournamentRepository: TournamentRepository,
@@ -69,27 +81,33 @@ export class TournamentViewService {
       return null;
     }
 
-    const { tournaments } =
-      await this.getTournamentHubView(currentPlayerId);
+    const playerTournaments =
+      await this.tournamentRepository.getByPlayerId(
+        currentPlayerId
+      );
 
-    return (
-      tournaments.find(
-        (view) =>
-          view.currentPlayer !== null &&
-          view.tournament.status === "active"
+    const tournament =
+      playerTournaments.find(
+        (candidate) => candidate.status === "active"
       ) ??
-      tournaments.find(
-        (view) =>
-          view.currentPlayer !== null &&
-          (view.tournament.status === "draft" ||
-            view.tournament.status === "upcoming")
+      playerTournaments.find(
+        (candidate) =>
+          candidate.status === "draft" ||
+          candidate.status === "upcoming"
       ) ??
-      tournaments.find(
-        (view) =>
-          view.currentPlayer !== null &&
-          view.tournament.status === "completed"
+      playerTournaments.find(
+        (candidate) => candidate.status === "completed"
       ) ??
-      null
+      null;
+
+    if (!tournament) {
+      return null;
+    }
+
+    return this.getTournamentView(
+      tournament.id,
+      currentPlayerId,
+      tournament
     );
   }
 
@@ -99,13 +117,44 @@ export class TournamentViewService {
     const tournaments =
       await this.tournamentRepository.getAll();
 
+    const tournamentIds = tournaments.map(
+      (tournament) => tournament.id
+    );
+    const groups =
+      await this.participantRepository.getMainGroupsByTournamentIds(
+        tournamentIds
+      );
+    const groupIds = groups.map((group) => group.id);
+    const [participants, matches] = await Promise.all([
+      this.participantRepository.getByGroupIds(groupIds),
+      this.matchRepository.getByTournamentIds(tournamentIds),
+    ]);
+
     const views = await Promise.all(
       tournaments.map(async (tournament) => {
+        const group = groups.find(
+          (candidate) =>
+            candidate.tournament_id === tournament.id
+        );
+
         try {
           return await this.getTournamentView(
             tournament.id,
             currentPlayerId,
-            tournament
+            tournament,
+            {
+              group: group ?? null,
+              participants: group
+                ? participants.filter(
+                    (participant) =>
+                      participant.group_id === group.id
+                  )
+                : [],
+              matches: matches.filter(
+                (match) =>
+                  match.tournament_id === tournament.id
+              ),
+            }
           );
         } catch {
           return null;
@@ -125,7 +174,8 @@ export class TournamentViewService {
     currentPlayerId: string | null,
     prefetchedTournament?: Awaited<
       ReturnType<TournamentRepository["getAll"]>
-    >[number]
+    >[number],
+    prefetchedData?: PrefetchedTournamentData
   ): Promise<TournamentView> {
     const normalizedTournamentId = tournamentId.trim();
 
@@ -133,13 +183,21 @@ export class TournamentViewService {
       throw new Error("Turnīra ID nav norādīts.");
     }
 
-    const [tournament, group] = await Promise.all([
-      prefetchedTournament ??
-        this.tournamentRepository.getById(normalizedTournamentId),
-      this.participantRepository.getMainGroupByTournamentId(
-        normalizedTournamentId
-      ),
-    ]);
+    const [tournament, group] = prefetchedData
+      ? [prefetchedTournament, prefetchedData.group]
+      : await Promise.all([
+          prefetchedTournament ??
+            this.tournamentRepository.getById(
+              normalizedTournamentId
+            ),
+          this.participantRepository.getMainGroupByTournamentId(
+            normalizedTournamentId
+          ),
+        ]);
+
+    if (!tournament) {
+      throw new Error("Turnīrs nav atrasts.");
+    }
 
     if (!group) {
       throw new Error(
@@ -147,12 +205,14 @@ export class TournamentViewService {
       );
     }
 
-    const [participants, matches] = await Promise.all([
-      this.participantRepository.getByGroupId(group.id),
-      this.matchRepository.getByTournamentId(
-        normalizedTournamentId
-      ),
-    ]);
+    const [participants, matches] = prefetchedData
+      ? [prefetchedData.participants, prefetchedData.matches]
+      : await Promise.all([
+          this.participantRepository.getByGroupId(group.id),
+          this.matchRepository.getByTournamentId(
+            normalizedTournamentId
+          ),
+        ]);
 
     const standingPlayers: StandingPlayer[] =
       participants.map((participant) => ({

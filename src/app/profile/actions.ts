@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import sharp from "sharp";
 
 import { getCurrentIdentity } from "@/lib/auth/getCurrentIdentity";
 import { createClient } from "@/lib/supabase/server";
@@ -85,12 +86,33 @@ export async function updateProfileAvatar(
     return { status: "error", message: "Lai mainītu bildi, nepieciešams ielogoties." };
   }
 
-  const filePath = `${identity.userId}/avatar-${Date.now()}.${extension}`;
+  let optimizedImage: Buffer;
+
+  try {
+    optimizedImage = await sharp(
+      Buffer.from(await image.arrayBuffer()),
+      { limitInputPixels: 40_000_000 }
+    )
+      .rotate()
+      .resize(512, 512, {
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: 82, effort: 4 })
+      .toBuffer();
+  } catch {
+    return {
+      status: "error",
+      message: "Attēlu neizdevās apstrādāt. Izvēlies citu failu.",
+    };
+  }
+
+  const filePath = `${identity.userId}/avatar-${Date.now()}.webp`;
   const { error: uploadError } = await supabase.storage
     .from("profile-avatars")
-    .upload(filePath, image, {
-      contentType: image.type,
-      cacheControl: "3600",
+    .upload(filePath, optimizedImage, {
+      contentType: "image/webp",
+      cacheControl: "31536000",
       upsert: false,
     });
 

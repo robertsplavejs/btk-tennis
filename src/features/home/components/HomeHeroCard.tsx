@@ -57,7 +57,7 @@ export function HomeHeroCard({
       : 0;
 
   const theme = HOME_HERO_THEMES[ACTIVE_HOME_HERO_THEME];
-  const resolvedAvatarUrl = avatarUrl ?? "/demo/roberts.jpg";
+  const resolvedAvatarUrl = avatarUrl ?? "/demo/roberts.webp";
 
   return (
     <Link

@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 
-export function CopyInvitationLink({ path }: { path: string }) {
+export function CopyInvitationLink({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
 
   async function copyLink() {
-    const link = new URL(path, window.location.origin).toString();
-    await navigator.clipboard.writeText(link);
+    await navigator.clipboard.writeText(url);
     setCopied(true);
   }
 

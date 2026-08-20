@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { ConfirmSubmitButton } from "@/components/ui/ConfirmSubmitButton";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { getAppUrl } from "@/lib/appUrl";
 import { createClient } from "@/lib/supabase/server";
 
 import { createInvitation, deleteInvitation } from "./actions";
@@ -67,7 +68,9 @@ export default async function InvitationsPage({
             Nokopē saiti un nosūti to uzaicinātajai personai. Saite ir derīga
             14 dienas un izmantojama vienu reizi.
           </p>
-          <CopyInvitationLink path={`/register?token=${token}`} />
+          <CopyInvitationLink
+            url={new URL(`/register?token=${token}`, getAppUrl()).toString()}
+          />
         </Card>
       )}
 

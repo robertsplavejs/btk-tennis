@@ -37,3 +37,29 @@ export async function createTournament(formData: FormData) {
 
   redirect("/admin/tournaments");
 }
+
+export async function deleteTournament(tournamentId: string) {
+  const normalizedId = tournamentId.trim();
+
+  try {
+    await requireAdmin();
+    const tournamentService = await createTournamentService();
+    await tournamentService.deleteTournament(normalizedId);
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Neizdevās izdzēst turnīru.";
+
+    redirect(
+      `/admin/tournaments/${encodeURIComponent(normalizedId)}?error=${encodeURIComponent(message)}`
+    );
+  }
+
+  revalidatePath("/");
+  revalidatePath("/matches");
+  revalidatePath("/tournament");
+  revalidatePath("/profile");
+  revalidatePath("/admin/tournaments");
+  redirect("/admin/tournaments?success=Turn%C4%ABrs%20izdz%C4%93sts.");
+}

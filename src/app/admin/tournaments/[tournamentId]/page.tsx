@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { ConfirmSubmitButton } from "@/components/ui/ConfirmSubmitButton";
 import { createMatchService } from "@/services/createMatchService";
 import { createParticipantService } from "@/services/createParticipantService";
 import { createTournamentService } from "@/services/createTournamentService";
 
+import { deleteTournament } from "../actions";
 import { generateMatches } from "./actions";
 
 type AdminTournamentPageProps = {
@@ -380,6 +382,24 @@ export default async function AdminTournamentPage({
             Rediģēt
           </Link>
         </div>
+      </Card>
+
+      <Card className="border-red-100 p-5">
+        <h2 className="text-lg font-semibold text-red-700">
+          Dzēst turnīru
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-neutral-500">
+          Tiks neatgriezeniski dzēsts turnīrs, tā dalībnieki, spēles,
+          rezultāti, paziņojumi un aktivitātes.
+        </p>
+        <form action={deleteTournament.bind(null, tournament.id)}>
+          <ConfirmSubmitButton
+            confirmation={`Vai tiešām neatgriezeniski dzēst turnīru “${tournament.name}” un visus tā datus?`}
+            className="mt-5 flex h-12 w-full items-center justify-center rounded-xl bg-red-600 px-5 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+          >
+            Dzēst turnīru
+          </ConfirmSubmitButton>
+        </form>
       </Card>
     </div>
   );

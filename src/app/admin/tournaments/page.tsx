@@ -11,7 +11,14 @@ const statusLabels: Record<string, string> = {
   archived: "Arhivēts",
 };
 
-export default async function AdminTournamentsPage() {
+type AdminTournamentsPageProps = {
+  searchParams: Promise<{ success?: string }>;
+};
+
+export default async function AdminTournamentsPage({
+  searchParams,
+}: AdminTournamentsPageProps) {
+  const { success } = await searchParams;
   const tournamentService = await createTournamentService();
   const tournaments = await tournamentService.getTournaments();
 
@@ -35,6 +42,12 @@ export default async function AdminTournamentsPage() {
           Jauns turnīrs
         </Link>
       </div>
+
+      {success && (
+        <p className="rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-800" role="status">
+          {success}
+        </p>
+      )}
 
       {tournaments.length === 0 ? (
         <Card className="p-5">

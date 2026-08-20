@@ -1,10 +1,11 @@
 import Link from "next/link";
 
 import { Card } from "@/components/ui/Card";
+import { ConfirmSubmitButton } from "@/components/ui/ConfirmSubmitButton";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
 import { createClient } from "@/lib/supabase/server";
 
-import { createInvitation } from "./actions";
+import { createInvitation, deleteInvitation } from "./actions";
 import { CopyInvitationLink } from "./CopyInvitationLink";
 
 type InvitationsPageProps = {
@@ -12,6 +13,7 @@ type InvitationsPageProps = {
     error?: string;
     token?: string;
     name?: string;
+    success?: string;
   }>;
 };
 
@@ -19,7 +21,7 @@ export default async function InvitationsPage({
   searchParams,
 }: InvitationsPageProps) {
   await requireAdmin();
-  const { error, token } = await searchParams;
+  const { error, token, success } = await searchParams;
   const supabase = await createClient();
 
   const [{ data: players }, { data: accounts }, { data: invitations }] =
@@ -67,6 +69,12 @@ export default async function InvitationsPage({
           </p>
           <CopyInvitationLink path={`/register?token=${token}`} />
         </Card>
+      )}
+
+      {success && (
+        <p className="rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-800" role="status">
+          {success}
+        </p>
       )}
 
       <Card className="p-5">
@@ -156,6 +164,14 @@ export default async function InvitationsPage({
                   {invitation.accepted_at ? "Pieņemts" : "Gaida"}
                 </span>
               </div>
+              <form action={deleteInvitation.bind(null, invitation.id)}>
+                <ConfirmSubmitButton
+                  confirmation={`Vai tiešām dzēst uzaicinājumu adresātam ${invitation.email}?`}
+                  className="mt-4 text-sm font-semibold text-red-600"
+                >
+                  Dzēst uzaicinājumu
+                </ConfirmSubmitButton>
+              </form>
             </div>
           ))}
         </Card>

@@ -73,3 +73,43 @@ export async function createInvitation(formData: FormData) {
     );
   }
 }
+
+export async function deleteInvitation(invitationId: string) {
+  const normalizedId = invitationId.trim();
+
+  try {
+    await requireAdmin();
+
+    if (!normalizedId) {
+      throw new Error("Uzaicinājuma ID nav norādīts.");
+    }
+
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("account_invitations")
+      .delete()
+      .eq("id", normalizedId)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    if (!data) {
+      throw new Error("Uzaicinājums nav atrasts vai to nevar izdzēst.");
+    }
+  } catch (error) {
+    redirect(
+      invitationUrl({
+        error:
+          error instanceof Error
+            ? error.message
+            : "Neizdevās izdzēst uzaicinājumu.",
+      })
+    );
+  }
+
+  revalidatePath("/admin/invitations");
+  redirect(invitationUrl({ success: "Uzaicinājums izdzēsts." }));
+}

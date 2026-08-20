@@ -245,4 +245,21 @@ export class TournamentService {
       tournament
     );
   }
+
+  async deleteTournament(id: string) {
+    const normalizedId = id.trim();
+
+    if (!normalizedId) {
+      throw new Error("Turnīra ID nav norādīts.");
+    }
+
+    const deletedTournament =
+      await this.tournamentRepository.delete(normalizedId);
+
+    if (!deletedTournament) {
+      throw new Error("Turnīrs nav atrasts vai to nevar izdzēst.");
+    }
+
+    return deletedTournament;
+  }
 }

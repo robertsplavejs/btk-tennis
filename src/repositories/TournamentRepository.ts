@@ -77,4 +77,19 @@ export class TournamentRepository {
 
     return data;
   }
+
+  async delete(id: string) {
+    const { data, error } = await this.supabase
+      .from("tournaments")
+      .delete()
+      .eq("id", id)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
 }

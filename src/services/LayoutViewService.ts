@@ -1,3 +1,5 @@
+import { NotificationService } from "@/services/NotificationService";
+
 export type LayoutCurrentUser = {
   userId: string;
   playerId: string | null;
@@ -12,6 +14,10 @@ export type LayoutView = {
 };
 
 export class LayoutViewService {
+  constructor(
+    private readonly notificationService: NotificationService
+  ) {}
+
   async getLayoutView(
     currentUser: LayoutCurrentUser | null
   ): Promise<LayoutView> {
@@ -22,9 +28,15 @@ export class LayoutViewService {
       };
     }
 
+    const unreadNotifications = currentUser.playerId
+      ? await this.notificationService.getUnreadCount(
+          currentUser.playerId
+        )
+      : 0;
+
     return {
       currentUser,
-      unreadNotifications: 0,
+      unreadNotifications,
     };
   }
 }

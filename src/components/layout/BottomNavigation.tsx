@@ -149,6 +149,10 @@ export function BottomNavigation({
     unreadNotifications
   );
 
+  useEffect(() => {
+    lastUnreadLoadAt.current = Date.now();
+  }, []);
+
   const loadUnreadCount = useCallback(async (force = false) => {
     const now = Date.now();
 
@@ -196,14 +200,6 @@ export function BottomNavigation({
 
     await unreadRequest.current;
   }, [isAuthenticated]);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadUnreadCount(true);
-    }, 500);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [loadUnreadCount]);
 
   useEffect(() => {
     function handleWindowFocus() {

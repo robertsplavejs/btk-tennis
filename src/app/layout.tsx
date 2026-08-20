@@ -5,9 +5,6 @@ import { AppShell } from "@/components/layout/AppShell";
 
 import "./globals.css";
 
-// Keep server rendering close to the Supabase eu-central-1 database.
-export const preferredRegion = "fra1";
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

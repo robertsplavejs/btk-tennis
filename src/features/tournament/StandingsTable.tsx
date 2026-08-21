@@ -189,7 +189,7 @@ export function TournamentStatisticsTable({
             <div
               key={player.playerId}
               className={clsx(
-                "items-center gap-3 border-b border-black/5 px-4 py-3 text-xs",
+                "items-center gap-3 border-b border-black/5 px-4 py-3 text-xs text-neutral-700",
                 isCurrentPlayer && "bg-[#f5f8ee]"
               )}
               style={{

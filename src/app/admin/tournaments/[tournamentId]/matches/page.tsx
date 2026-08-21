@@ -30,6 +30,7 @@ function formatScheduledAt(value: string | null) {
   }
 
   return new Intl.DateTimeFormat("lv-LV", {
+    timeZone: "Europe/Riga",
     day: "numeric",
     month: "short",
     hour: "2-digit",

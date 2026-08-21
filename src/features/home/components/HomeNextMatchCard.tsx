@@ -95,15 +95,18 @@ function formatMatchDate(value?: string) {
 
   return {
     weekday: new Intl.DateTimeFormat("lv-LV", {
+      timeZone: "Europe/Riga",
       weekday: "long",
     }).format(date),
 
     date: new Intl.DateTimeFormat("lv-LV", {
+      timeZone: "Europe/Riga",
       day: "numeric",
       month: "long",
     }).format(date),
 
     time: new Intl.DateTimeFormat("lv-LV", {
+      timeZone: "Europe/Riga",
       hour: "2-digit",
       minute: "2-digit",
     }).format(date),

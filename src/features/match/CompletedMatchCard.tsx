@@ -20,6 +20,7 @@ export type CompletedMatch = {
 };
 
 const shortDateFormatter = new Intl.DateTimeFormat("lv-LV", {
+  timeZone: "Europe/Riga",
   day: "numeric",
   month: "long",
 });

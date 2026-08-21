@@ -32,12 +32,14 @@ function formatNotificationDate(value: string) {
 
   if (isToday) {
     return new Intl.DateTimeFormat("lv-LV", {
+      timeZone: "Europe/Riga",
       hour: "2-digit",
       minute: "2-digit",
     }).format(date);
   }
 
   return new Intl.DateTimeFormat("lv-LV", {
+    timeZone: "Europe/Riga",
     day: "numeric",
     month: "short",
     hour: "2-digit",

@@ -55,11 +55,13 @@ export function formatActivityTime(
 
   if (difference < 7 * DAY_IN_MS) {
     return new Intl.DateTimeFormat("lv-LV", {
+      timeZone: "Europe/Riga",
       weekday: "long",
     }).format(date);
   }
 
   return new Intl.DateTimeFormat("lv-LV", {
+    timeZone: "Europe/Riga",
     day: "numeric",
     month: "long",
   }).format(date);

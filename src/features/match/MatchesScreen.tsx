@@ -57,11 +57,13 @@ type MatchesScreenProps = {
 };
 
 const matchDateFormatter = new Intl.DateTimeFormat("lv-LV", {
+  timeZone: "Europe/Riga",
   day: "numeric",
   month: "long",
 });
 
 const matchTimeFormatter = new Intl.DateTimeFormat("lv-LV", {
+  timeZone: "Europe/Riga",
   hour: "2-digit",
   minute: "2-digit",
 });

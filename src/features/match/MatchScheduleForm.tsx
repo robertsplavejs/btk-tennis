@@ -91,6 +91,7 @@ export function MatchScheduleForm({
     }
 
     return new Intl.DateTimeFormat("lv-LV", {
+      timeZone: "Europe/Riga",
       weekday: "long",
       day: "numeric",
       month: "long",

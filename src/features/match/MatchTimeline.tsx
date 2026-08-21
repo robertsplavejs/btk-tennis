@@ -13,6 +13,7 @@ function formatTimelineDate(value: string) {
   }
 
   return new Intl.DateTimeFormat("lv-LV", {
+    timeZone: "Europe/Riga",
     day: "numeric",
     month: "long",
     year: "numeric",
